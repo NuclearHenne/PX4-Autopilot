@@ -154,6 +154,17 @@ FixedwingPositionControl::parameters_update()
 	_tecs_X.set_throttle_slewrate(_param_fw_thr_slew_max.get());
 	_tecs_X.set_speed_derivative_time_constant(_param_tas_rate_time_const.get());
 
+	// Maneuver 
+	_maneuver.set_base_spd_sp(_param_fw_x_spd_target.get());
+	_maneuver.set_base_hgt_sp(_param_fw_x_hgt_target.get());
+	_maneuver.set_rel_spd_sp(_param_fw_x_rel_spd_target.get());
+	_maneuver.set_rel_hgt_sp(_param_fw_x_rel_hgt_target.get());
+	_maneuver.set_spd_rise_time(_param_fw_x_risetime_spd.get());
+	_maneuver.set_hgt_rise_time(_param_fw_x_risetime_hgt.get());
+
+	// Mode and Ctrl selection parameters
+	_mode_sel = _param_fw_x_mode.get();
+	_ctrl_sel = _param_fw_x_ctrl_sel.get();
 
 
 	// Landing slope
@@ -659,6 +670,7 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 {
 	const float dt = math::constrain((now - _control_position_last_called) * 1e-6f, 0.01f, 0.05f);
 	_control_position_last_called = now;
+	_dt = dt;
 
 	_l1_control.set_dt(dt);
 
@@ -708,6 +720,8 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 	if (_control_mode_current == FW_POSCTRL_MODE_OTHER) {
 		/* reset integrators */
 		_tecs.reset_state();
+		// ADD INTEGRATOR TECS
+		_tecs_X.reset_state();
 	}
 
 	if ((_control_mode.flag_control_auto_enabled || _control_mode.flag_control_offboard_enabled) && pos_sp_curr.valid) {
@@ -1106,6 +1120,8 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		if (_control_mode_current != FW_POSCTRL_MODE_POSITION && _control_mode_current != FW_POSCTRL_MODE_ALTITUDE) {
 			/* Need to init because last loop iteration was in a different mode */
 			_hold_alt = _current_altitude;
+			// ^^^^^^^ -> needs to be changed?
+
 		}
 
 		_control_mode_current = FW_POSCTRL_MODE_ALTITUDE;
@@ -1128,7 +1144,7 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		if (_landed && (fabsf(_manual_control_setpoint_airspeed) < THROTTLE_THRESH)) {
 			throttle_max = 0.0f;
 		}
-
+		// ---> TACKLE HERE
 		tecs_update_pitch_throttle(now, _hold_alt,
 					   altctrl_airspeed,
 					   radians(_param_fw_p_lim_min.get()),
@@ -1668,6 +1684,15 @@ float
 FixedwingPositionControl::get_tecs_pitch()
 {
 	if (_is_tecs_running) {
+		if(_man_active)
+		{
+			if(_param_fw_x_ctrl_sel.get() == 1) {
+				return _tecs_X.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
+			}
+			else if(_param_fw_x_ctrl_sel.get() == 2) {
+				return 0.0; // PI OUTPUT HERE
+			} 
+		}
 		return _tecs.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
 	}
 
@@ -1679,6 +1704,17 @@ float
 FixedwingPositionControl::get_tecs_thrust()
 {
 	if (_is_tecs_running) {
+		if(_man_active)
+		{
+			if(_param_fw_x_ctrl_sel.get() == 1)
+			{
+				return _tecs_X.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
+			}
+			else if(_param_fw_x_ctrl_sel.get() == 2)
+			{
+				return 0.0; // PI OUTPUT HERE
+			}
+		}
 		return _tecs.get_throttle_setpoint();
 	}
 
@@ -1939,6 +1975,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 
 	if (_reinitialize_tecs) {
 		_tecs.reset_state();
+		_tecs_X.reset_state();
 		_reinitialize_tecs = false;
 	}
 
@@ -1994,7 +2031,22 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 bool
 FixedwingPositionControl::man_active()
 {
-	return true;
+	if((_manual_control_setpoint.aux1 > 1) && (_man_active == false)) 
+	{
+		_man_active = true;
+		_maneuver.init_trajectory();
+		return true;
+	}
+	else if((_manual_control_setpoint.aux1 > 1) && (_man_active == true)) 
+	{
+		_maneuver.update_trajectory(_dt);
+		return true;
+	}
+	else 
+	{
+		_maneuver.reset_trajectory();
+		return false;
+	}
 }
 // == SPAWN TASK ===============================================================
 

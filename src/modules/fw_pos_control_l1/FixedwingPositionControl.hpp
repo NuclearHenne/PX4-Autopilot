@@ -264,6 +264,9 @@ private:
 	// == FLIGHT TEST IMPLEMENTATIONS ==
 	Testmaneuver		_maneuver;
 	bool			_man_active{false};
+	uint32_t 		_mode_sel{0};
+	uint32_t 		_ctrl_sel{0};
+	float 			_dt{0.0f};
 
 
 	uint8_t _type{0};

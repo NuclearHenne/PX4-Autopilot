@@ -1964,6 +1964,13 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 	tecs_status_publish();
 }
 
+bool
+FixedwingPositionControl::man_active()
+{
+	return true;
+}
+// == SPAWN TASK ===============================================================
+
 int FixedwingPositionControl::task_spawn(int argc, char *argv[])
 {
 	bool vtol = false;

@@ -90,6 +90,9 @@
 #include <uORB/uORB.h>
 #include <vtol_att_control/vtol_type.h>
 
+// == INCLUDE FLIGHTTEST CLASS ==
+//#include <lib/flighttest/flighttest.hpp>
+
 using namespace launchdetection;
 using namespace runwaytakeoff;
 using namespace time_literals;
@@ -256,6 +259,7 @@ private:
 
 	ECL_L1_Pos_Controller	_l1_control;
 	TECS			_tecs;
+	//Flighttest		_flighttest;
 
 	uint8_t _type{0};
 	enum FW_POSCTRL_MODE {
@@ -264,6 +268,8 @@ private:
 		FW_POSCTRL_MODE_ALTITUDE,
 		FW_POSCTRL_MODE_OTHER
 	} _control_mode_current{FW_POSCTRL_MODE_OTHER};		///< used to check the mode in the last control loop iteration. Use to check if the last iteration was in the same mode.
+
+
 
 	param_t _param_handle_airspeed_trans{PARAM_INVALID};
 	float _param_airspeed_trans{NAN};
@@ -426,8 +432,9 @@ private:
 		(ParamFloat<px4::params::FW_X_SPD_SP>) _param_fw_x_spd_target,
 		(ParamFloat<px4::params::FW_X_REL_HGT_SP>) _param_fw_x_rel_hgt_target,
 		(ParamFloat<px4::params::FW_X_REL_SPD_SP>) _param_fw_x_rel_spd_target,
-		(ParamFloat<px4::params::FW_X_RISE_T>) _param_fw_x_risetime,
-		(ParamInt<px4::params::FW_X_CARD_NUM>) _param_fw_x_card_num
+		(ParamFloat<px4::params::FW_X_RISE_T_HGT>) _param_fw_x_risetime_hgt,
+		(ParamFloat<px4::params::FW_X_RISE_T_SPD>) _param_fw_x_risetime_spd,
+		(ParamInt<px4::params::FW_X_MODE>) _param_fw_x_mode
 	)
 
 };

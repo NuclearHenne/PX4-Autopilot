@@ -132,7 +132,6 @@ FixedwingPositionControl::parameters_update()
 	_tecs_X.set_max_climb_rate(_param_fw_tx_clmb_max.get());
 	_tecs_X.set_max_sink_rate(_param_fw_tx_sink_max.get());
 	_tecs_X.set_speed_weight(_param_fw_tx_spdweight.get());
-	
 	_tecs_X.set_min_sink_rate(_param_fw_tx_sink_min.get());
 	_tecs_X.set_throttle_damp(_param_fw_tx_thr_damp.get());
 	_tecs_X.set_integrator_gain_throttle(_param_fw_tx_I_gain_thr.get());
@@ -153,8 +152,7 @@ FixedwingPositionControl::parameters_update()
 	_tecs_X.set_equivalent_airspeed_max(_param_fw_airspd_max.get());
 	_tecs_X.set_throttle_slewrate(_param_fw_thr_slew_max.get());
 	_tecs_X.set_speed_derivative_time_constant(_param_tas_rate_time_const.get());
-
-	// Maneuver 
+	// Maneuver
 	_maneuver.set_base_spd_sp(_param_fw_x_spd_target.get());
 	_maneuver.set_base_hgt_sp(_param_fw_x_hgt_target.get());
 	_maneuver.set_rel_spd_sp(_param_fw_x_rel_spd_target.get());
@@ -275,6 +273,7 @@ FixedwingPositionControl::airspeed_poll()
 	// update TECS if validity changed
 	if (airspeed_valid != _airspeed_valid) {
 		_tecs.enable_airspeed(airspeed_valid);
+		_tecs_X.enable_airspeed(airspeed_valid);
 		_airspeed_valid = airspeed_valid;
 	}
 }
@@ -331,6 +330,7 @@ FixedwingPositionControl::vehicle_attitude_poll()
 		// update TECS load factor
 		const float load_factor = 1.f / cosf(euler_angles(0));
 		_tecs.set_load_factor(load_factor);
+		_tecs_X.set_load_factor(load_factor);
 	}
 }
 
@@ -352,6 +352,12 @@ FixedwingPositionControl::get_demanded_airspeed()
 				   (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get()) *
 				   (_manual_control_setpoint_airspeed * 2 - 1);
 	}
+	// OVERWRITE
+	altctrl_airspeed = _param_fw_x_spd_target.get();
+	if(_man_active == true) {
+		altctrl_airspeed += _maneuver.get_test_spd_sp();
+	}
+
 
 	return altctrl_airspeed;
 }
@@ -405,6 +411,7 @@ void
 FixedwingPositionControl::tecs_status_publish()
 {
 	tecs_status_s t{};
+	tecs_status_x_s tx{};
 
 	switch (_tecs.tecs_mode()) {
 	case TECS::ECL_TECS_MODE_NORMAL:
@@ -462,8 +469,66 @@ FixedwingPositionControl::tecs_status_publish()
 	t.pitch_sp_rad = _tecs.get_pitch_setpoint();
 
 	t.timestamp = hrt_absolute_time();
-
 	_tecs_status_pub.publish(t);
+
+	switch (_tecs_X.tecs_mode()) {
+	case TECS::ECL_TECS_MODE_NORMAL:
+		tx.mode_x = tecs_status_x_s::TECS_MODE_NORMAL_X;
+		break;
+
+	case TECS::ECL_TECS_MODE_UNDERSPEED:
+		tx.mode_x = tecs_status_x_s::TECS_MODE_UNDERSPEED_X;
+		break;
+
+	case TECS::ECL_TECS_MODE_BAD_DESCENT:
+		tx.mode_x = tecs_status_x_s::TECS_MODE_BAD_DESCENT_X;
+		break;
+
+	case TECS::ECL_TECS_MODE_CLIMBOUT:
+		tx.mode_x = tecs_status_x_s::TECS_MODE_CLIMBOUT_X;
+		break;
+	}
+
+	tx.altitude_sp_x = _tecs_X.hgt_setpoint();
+	tx.altitude_filtered_x = _tecs_X.vert_pos_state();
+
+	tx.true_airspeed_sp_x = _tecs_X.TAS_setpoint_adj();
+	tx.true_airspeed_filtered_x = _tecs_X.tas_state();
+
+	tx.height_rate_setpoint_x = _tecs_X.hgt_rate_setpoint();
+	tx.height_rate_x = _tecs_X.vert_vel_state();
+
+	tx.equivalent_airspeed_sp_x = _tecs_X.get_EAS_setpoint();
+	tx.true_airspeed_derivative_sp_x = _tecs_X.TAS_rate_setpoint();
+	tx.true_airspeed_derivative_x = _tecs_X.speed_derivative();
+	tx.true_airspeed_derivative_raw_x = _tecs_X.speed_derivative_raw();
+	tx.true_airspeed_innovation_x = _tecs_X.getTASInnovation();
+
+	tx.total_energy_error_x = _tecs_X.STE_error();
+	tx.total_energy_rate_error_x = _tecs_X.STE_rate_error();
+
+	tx.energy_distribution_error_x = _tecs_X.SEB_error();
+	tx.energy_distribution_rate_error_x = _tecs_X.SEB_rate_error();
+
+	tx.total_energy_x = _tecs_X.STE();
+	tx.total_energy_rate_x = _tecs_X.STE_rate();
+	tx.total_energy_balance_x = _tecs_X.SEB();
+	tx.total_energy_balance_rate_x = _tecs_X.SEB_rate();
+
+	tx.total_energy_sp_x = _tecs_X.STE_setpoint();
+	tx.total_energy_rate_sp_x = _tecs_X.STE_rate_setpoint();
+	tx.total_energy_balance_sp_x = _tecs_X.SEB_setpoint();
+	tx.total_energy_balance_rate_sp_x = _tecs_X.SEB_rate_setpoint();
+
+	tx.throttle_integ_x = _tecs_X.throttle_integ_state();
+	tx.pitch_integ_x = _tecs_X.pitch_integ_state();
+
+	tx.throttle_sp_x = _tecs_X.get_throttle_setpoint();
+	tx.pitch_sp_rad_x = _tecs_X.get_pitch_setpoint();
+
+	tx.timestamp = hrt_absolute_time();
+
+	_tecs_status_x_pub.publish(tx);
 }
 
 void
@@ -597,41 +662,50 @@ FixedwingPositionControl::update_desired_altitude(float dt)
 		_althold_epv = _local_pos.epv;
 	}
 
-	/*
-	 * Manual control has as convention the rotation around
-	 * an axis. Positive X means to rotate positively around
-	 * the X axis in NED frame, which is pitching down
-	 */
-	if (_manual_control_setpoint_altitude > deadBand) {
-		/* pitching down */
-		float pitch = -(_manual_control_setpoint_altitude - deadBand) / factor;
-
-		if (pitch * _param_sinkrate_target.get() < _tecs.hgt_rate_setpoint()) {
-			_hold_alt += (_param_sinkrate_target.get() * dt) * pitch;
-			_manual_height_rate_setpoint_m_s = pitch * _param_sinkrate_target.get();
-			_was_in_deadband = false;
+	// NASTY DISABLE
+	if(1) {
+		_hold_alt = _param_fw_x_hgt_target.get() + _local_pos.ref_alt;
+		if(_man_active == true) {
+			_hold_alt += _maneuver.get_test_hgt_sp();
 		}
-
-	} else if (_manual_control_setpoint_altitude < - deadBand) {
-		/* pitching up */
-		float pitch = -(_manual_control_setpoint_altitude + deadBand) / factor;
-
-		if (pitch * _param_climbrate_target.get() > _tecs.hgt_rate_setpoint()) {
-			_hold_alt += (_param_climbrate_target.get() * dt) * pitch;
-			_manual_height_rate_setpoint_m_s = pitch * _param_climbrate_target.get();
-			_was_in_deadband = false;
-		}
-
-	} else if (!_was_in_deadband) {
-		/* store altitude at which manual.x was inside deadBand
-		 * The aircraft should immediately try to fly at this altitude
-		 * as this is what the pilot expects when he moves the stick to the center */
-		_hold_alt = _current_altitude;
-		_althold_epv = _local_pos.epv;
-		_was_in_deadband = true;
-		_manual_height_rate_setpoint_m_s = NAN;
 	}
+	else
+	{
+		/*
+		* Manual control has as convention the rotation around
+		* an axis. Positive X means to rotate positively around
+		* the X axis in NED frame, which is pitching down
+		*/
+		if (_manual_control_setpoint_altitude > deadBand) {
+			/* pitching down */
+			float pitch = -(_manual_control_setpoint_altitude - deadBand) / factor;
 
+			if (pitch * _param_sinkrate_target.get() < _tecs.hgt_rate_setpoint()) {
+				_hold_alt += (_param_sinkrate_target.get() * dt) * pitch;
+				_manual_height_rate_setpoint_m_s = pitch * _param_sinkrate_target.get();
+				_was_in_deadband = false;
+			}
+
+		} else if (_manual_control_setpoint_altitude < - deadBand) {
+			/* pitching up */
+			float pitch = -(_manual_control_setpoint_altitude + deadBand) / factor;
+
+			if (pitch * _param_climbrate_target.get() > _tecs.hgt_rate_setpoint()) {
+				_hold_alt += (_param_climbrate_target.get() * dt) * pitch;
+				_manual_height_rate_setpoint_m_s = pitch * _param_climbrate_target.get();
+				_was_in_deadband = false;
+			}
+
+		} else if (!_was_in_deadband) {
+			/* store altitude at which manual.x was inside deadBand
+			* The aircraft should immediately try to fly at this altitude
+			* as this is what the pilot expects when he moves the stick to the center */
+			_hold_alt = _current_altitude;
+			_althold_epv = _local_pos.epv;
+			_was_in_deadband = true;
+			_manual_height_rate_setpoint_m_s = NAN;
+		}
+	}
 	if (_vehicle_status.is_vtol) {
 		if (_vehicle_status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_ROTARY_WING || _vehicle_status.in_transition_mode) {
 			_hold_alt = _current_altitude;
@@ -1119,11 +1193,14 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 
 		if (_control_mode_current != FW_POSCTRL_MODE_POSITION && _control_mode_current != FW_POSCTRL_MODE_ALTITUDE) {
 			/* Need to init because last loop iteration was in a different mode */
-			_hold_alt = _current_altitude;
-			// ^^^^^^^ -> needs to be changed?
+			//_hold_alt = _current_altitude; // <- former code
+
+			_hold_alt = _param_fw_x_hgt_target.get() + _local_pos.ref_alt;
 
 		}
 
+		// MANEUVER SYSTEM
+		man_active(dt);
 		_control_mode_current = FW_POSCTRL_MODE_ALTITUDE;
 
 		/* Get demanded airspeed */
@@ -1167,7 +1244,7 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		setpoint = false;
 
 		// reset hold altitude
-		_hold_alt = _current_altitude;
+		_hold_alt = _current_altitude ;
 
 		/* reset landing and takeoff state */
 		if (!_last_manual) {
@@ -1691,7 +1768,7 @@ FixedwingPositionControl::get_tecs_pitch()
 			}
 			else if(_param_fw_x_ctrl_sel.get() == 2) {
 				return 0.0; // PI OUTPUT HERE
-			} 
+			}
 		}
 		return _tecs.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
 	}
@@ -1708,7 +1785,7 @@ FixedwingPositionControl::get_tecs_thrust()
 		{
 			if(_param_fw_x_ctrl_sel.get() == 1)
 			{
-				return _tecs_X.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
+				return _tecs_X.get_throttle_setpoint();
 			}
 			else if(_param_fw_x_ctrl_sel.get() == 2)
 			{
@@ -1762,6 +1839,7 @@ FixedwingPositionControl::Run()
 				_hold_alt += -_local_pos.delta_z;
 				// make TECS accept step in altitude and demanded altitude
 				_tecs.handle_alt_step(-_local_pos.delta_z, _current_altitude);
+				_tecs_X.handle_alt_step(-_local_pos.delta_z, _current_altitude);
 			}
 
 			// adjust navigation waypoints in position control mode
@@ -1989,6 +2067,9 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 	_tecs.set_detect_underspeed_enabled(!(mode == tecs_status_s::TECS_MODE_LAND
 					      || mode == tecs_status_s::TECS_MODE_LAND_THROTTLELIM));
 
+	_tecs_X.set_detect_underspeed_enabled(!(mode == tecs_status_s::TECS_MODE_LAND
+					      || mode == tecs_status_s::TECS_MODE_LAND_THROTTLELIM));
+
 	/* tell TECS to update its state, but let it know when it cannot actually control the plane */
 	bool in_air_alt_control = (!_landed &&
 				   (_control_mode.flag_control_auto_enabled ||
@@ -1999,6 +2080,8 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 	_tecs.update_vehicle_state_estimates(_airspeed, _body_acceleration(0), (_local_pos.timestamp > 0), in_air_alt_control,
 					     _current_altitude, _local_pos.vz);
 
+	_tecs_X.update_vehicle_state_estimates(_airspeed, _body_acceleration(0), (_local_pos.timestamp > 0), in_air_alt_control,
+					     _current_altitude, _local_pos.vz);
 	/* scale throttle cruise by baro pressure */
 	if (_param_fw_thr_alt_scl.get() > FLT_EPSILON) {
 		vehicle_air_data_s air_data;
@@ -2025,26 +2108,36 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 				    pitch_max_rad - radians(_param_fw_psp_off.get()),
 				    _param_climbrate_target.get(), _param_sinkrate_target.get(), hgt_rate_sp);
 
+	_tecs_X.update_pitch_throttle(_pitch - radians(_param_fw_psp_off.get()),
+				    _current_altitude, alt_sp,
+				    airspeed_sp, _airspeed, _eas2tas,
+				    climbout_mode,
+				    climbout_pitch_min_rad - radians(_param_fw_psp_off.get()),
+				    throttle_min, throttle_max, throttle_cruise,
+				    pitch_min_rad - radians(_param_fw_psp_off.get()),
+				    pitch_max_rad - radians(_param_fw_psp_off.get()),
+				    _param_climbrate_x_target.get(), _param_sinkrate_x_target.get(), hgt_rate_sp);
 	tecs_status_publish();
 }
 
 bool
-FixedwingPositionControl::man_active()
+FixedwingPositionControl::man_active(float dt)
 {
-	if((_manual_control_setpoint.aux1 > 1) && (_man_active == false)) 
+	if((_manual_control_setpoint.z > 0.8f) && (_man_active == false))
 	{
 		_man_active = true;
 		_maneuver.init_trajectory();
 		return true;
 	}
-	else if((_manual_control_setpoint.aux1 > 1) && (_man_active == true)) 
+	else if((_manual_control_setpoint.z > 0.8f) && (_man_active == true))
 	{
-		_maneuver.update_trajectory(_dt);
+		_maneuver.update_trajectory(dt);
 		return true;
 	}
-	else 
+	else
 	{
 		_maneuver.reset_trajectory();
+		_man_active = false;
 		return false;
 	}
 }

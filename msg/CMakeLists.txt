@@ -140,6 +140,7 @@ set(msg_files
 	takeoff_status.msg
 	task_stack_info.msg
 	tecs_status.msg
+	tecs_status_x.msg
 	telemetry_status.msg
 	test_motor.msg
 	timesync.msg

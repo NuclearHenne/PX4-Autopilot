@@ -76,6 +76,7 @@
 #include <uORB/topics/position_controller_status.h>
 #include <uORB/topics/position_setpoint_triplet.h>
 #include <uORB/topics/tecs_status.h>
+#include <uORB/topics/tecs_status_x.h>
 #include <uORB/topics/vehicle_air_data.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
 #include <uORB/topics/vehicle_attitude.h>
@@ -159,6 +160,7 @@ private:
 	uORB::Publication<position_controller_status_s>		_pos_ctrl_status_pub{ORB_ID(position_controller_status)};			///< navigation capabilities publication
 	uORB::Publication<position_controller_landing_status_s>	_pos_ctrl_landing_status_pub{ORB_ID(position_controller_landing_status)};	///< landing status publication
 	uORB::Publication<tecs_status_s>			_tecs_status_pub{ORB_ID(tecs_status)};						///< TECS status publication
+	uORB::Publication<tecs_status_x_s>			_tecs_status_x_pub{ORB_ID(tecs_status_x)};
 
 	manual_control_setpoint_s	_manual_control_setpoint {};			///< r/c channel data
 	position_setpoint_triplet_s	_pos_sp_triplet {};		///< triplet of mission items
@@ -366,7 +368,7 @@ private:
 	// == FLIGHT TEST METHOD
 
 	// isActive
-	bool man_active();
+	bool man_active(float dt);
 
 	DEFINE_PARAMETERS(
 

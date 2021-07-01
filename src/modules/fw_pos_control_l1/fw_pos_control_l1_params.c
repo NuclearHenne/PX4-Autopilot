@@ -883,7 +883,7 @@ PARAM_DEFINE_FLOAT(FW_X_REL_HGT_SP, 10.0f);
  *
  * The maneuver speed setpoint for testing in altitude mode (Xperimental)
  *
- * @unit m
+ * @unit m/s
  * @min -5.0
  * @max 15.0
  * @decimal 2

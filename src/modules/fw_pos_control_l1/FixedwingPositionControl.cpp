@@ -2123,13 +2123,13 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 bool
 FixedwingPositionControl::man_active(float dt)
 {
-	if((_manual_control_setpoint.z > 0.8f) && (_man_active == false))
+	if((_manual_control_setpoint.aux1 > 0.8f) && (_man_active == false))
 	{
 		_man_active = true;
 		_maneuver.init_trajectory();
 		return true;
 	}
-	else if((_manual_control_setpoint.z > 0.8f) && (_man_active == true))
+	else if((_manual_control_setpoint.aux1 > 0.8f) && (_man_active == true))
 	{
 		_maneuver.update_trajectory(dt);
 		return true;

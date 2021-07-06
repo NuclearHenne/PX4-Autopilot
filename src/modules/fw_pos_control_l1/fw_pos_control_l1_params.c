@@ -890,7 +890,7 @@ PARAM_DEFINE_FLOAT(FW_X_REL_HGT_SP, 10.0f);
  * @increment 0.01
  * @group FW X MANEUVER
  */
-PARAM_DEFINE_FLOAT(FW_X_REL_SPD_SP, 5.0f);
+PARAM_DEFINE_FLOAT(FW_X_REL_SPD_SP, 6.0f);
 
 /**
  * Maneuver risetime height

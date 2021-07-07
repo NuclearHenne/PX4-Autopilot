@@ -451,6 +451,7 @@ private:
 		(ParamFloat<px4::params::FW_X_RISE_T_SPD>) _param_fw_x_risetime_spd,
 		(ParamInt<px4::params::FW_X_MODE>) _param_fw_x_mode,
 		(ParamInt<px4::params::FW_X_CTRL_SEL>) _param_fw_x_ctrl_sel,
+		(ParamFloat<px4::params::FW_X_INIT_T>) _param_fw_x_init_time,
 
 		// TECS X parameters
 		(ParamFloat<px4::params::FW_T_CLMB_MAX_X>) _param_fw_tx_clmb_max,

@@ -129,6 +129,7 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_seb_rate_ff_gain(_param_seb_rate_ff.get());
 
 	// TECS X parameters
+
 	_tecs_X.set_max_climb_rate(_param_fw_tx_clmb_max.get());
 	_tecs_X.set_max_sink_rate(_param_fw_tx_sink_max.get());
 	_tecs_X.set_speed_weight(_param_fw_tx_spdweight.get());
@@ -159,6 +160,7 @@ FixedwingPositionControl::parameters_update()
 	_maneuver.set_rel_hgt_sp(_param_fw_x_rel_hgt_target.get());
 	_maneuver.set_spd_rise_time(_param_fw_x_risetime_spd.get());
 	_maneuver.set_hgt_rise_time(_param_fw_x_risetime_hgt.get());
+	_maneuver.set_init_time(_param_fw_x_init_time.get());
 
 	// Mode and Ctrl selection parameters
 	_mode_sel = _param_fw_x_mode.get();

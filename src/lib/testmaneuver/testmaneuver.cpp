@@ -105,12 +105,22 @@ Testmaneuver::get_test_hgt_sp()
 float
 Testmaneuver::update_spd()
 {
-	if(_time > _spd_rise_time) {
+	if(_time > (_spd_rise_time + _init_time))
+	{
+	/*End of maneuver*/
 		return _rel_spd_sp;
+	}
+	else if(_time > _init_time)
+	{
+	/*Maneuver executes after initialization time*/
+		_time_since_endof_init = _time - _init_time;
+		return (_spd_coeff_a*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init
+			+ _spd_coeff_b*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init);
 	}
 	else
 	{
-		return (_spd_coeff_a*_time*_time*_time*_time + _spd_coeff_b*_time*_time*_time);
+	/*wait for initialization*/
+	return 0.0;
 	}
 
 }
@@ -118,11 +128,21 @@ Testmaneuver::update_spd()
 float
 Testmaneuver::update_hgt()
 {
-	if(_time > _hgt_rise_time) {
+	if(_time > (_hgt_rise_time + _init_time))
+	{
+	/*End of maneuver*/
 		return _rel_hgt_sp;
+	}
+	else if(_time > _init_time)
+	{
+	/*Maneuver executes after initialization time*/
+		_time_since_endof_init = _time - _init_time;
+		return (_hgt_coeff_a*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init
+		 + _hgt_coeff_b*_time_since_endof_init*_time_since_endof_init*_time_since_endof_init);
 	}
 	else
 	{
-		return (_hgt_coeff_a*_time*_time*_time*_time + _hgt_coeff_b*_time*_time*_time);
+		/*wait for initialization*/
+		return 0.0;
 	}
 }

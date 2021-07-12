@@ -1770,7 +1770,7 @@ FixedwingPositionControl::get_tecs_pitch()
 				return _tecs_X.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
 			}
 			else if(_param_fw_x_ctrl_sel.get() == 2) {
-				return 0.0; // PI OUTPUT HERE
+				return _pi_X.get_pitch_setpoint() + radians(_param_fw_psp_off.get()); // PI OUTPUT HERE
 			}
 		}
 		return _tecs.get_pitch_setpoint() + radians(_param_fw_psp_off.get());

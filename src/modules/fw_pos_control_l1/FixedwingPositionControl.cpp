@@ -480,15 +480,15 @@ FixedwingPositionControl::tecs_status_publish()
 		break;
 
 	case TECS::ECL_TECS_MODE_UNDERSPEED:
-		tx.mode_x = tecs_status_x_s::TECS_MODE_UNDERSPEED_X;
+		tx.mode_x = tecs_status_x_s::TECS_MODE_NORMAL_X;//tx.mode_x = tecs_status_x_s::TECS_MODE_UNDERSPEED_X;
 		break;
 
 	case TECS::ECL_TECS_MODE_BAD_DESCENT:
-		tx.mode_x = tecs_status_x_s::TECS_MODE_BAD_DESCENT_X;
+		tx.mode_x = tecs_status_x_s::TECS_MODE_NORMAL_X;//tx.mode_x = tecs_status_x_s::TECS_MODE_BAD_DESCENT_X;
 		break;
 
 	case TECS::ECL_TECS_MODE_CLIMBOUT:
-		tx.mode_x = tecs_status_x_s::TECS_MODE_CLIMBOUT_X;
+		tx.mode_x = tecs_status_x_s::TECS_MODE_NORMAL_X;//tx.mode_x = tecs_status_x_s::TECS_MODE_CLIMBOUT_X;
 		break;
 	}
 
@@ -2116,7 +2116,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 				    airspeed_sp, _airspeed, _eas2tas,
 				    climbout_mode,
 				    climbout_pitch_min_rad - radians(_param_fw_psp_off.get()),
-				    throttle_min, throttle_max, throttle_cruise,
+				    throttle_min, throttle_max, _tecs.get_throttle_setpoint(),
 				    pitch_min_rad - radians(_param_fw_psp_off.get()),
 				    pitch_max_rad - radians(_param_fw_psp_off.get()),
 				    _param_climbrate_x_target.get(), _param_sinkrate_x_target.get(), hgt_rate_sp);
@@ -2130,7 +2130,7 @@ FixedwingPositionControl::man_active(float dt)
 	Here the option to reset the experimental controller states is added*/
 	if((_manual_control_setpoint.z > 0.8f) && (_man_active == false))
 	{
-		_tecs_X.reset_state(); /*comment out if the integrators from the base px4 tecs should be used*/
+		//_tecs_X.reset_state(); /*comment out if the integrators from the base px4 tecs should be used*/
 		_man_active = true;
 		_maneuver.init_trajectory();
 		return true;

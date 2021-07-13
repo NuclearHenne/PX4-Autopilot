@@ -265,6 +265,8 @@ void TECS_X::_update_throttle_setpoint(const float throttle_cruise)
 			/* adaption to controller structure in Lamp, Maxim (2015) ISBN 978-3863876654:
 			The integrator is multiplied by mass and velocity to command an unspecific thrust force*/
 			throttle_setpoint += _throttle_integ_state * _mass * CONSTANTS_ONE_G + throttle_cruise;
+			double double_throttle_setpoint = double(throttle_setpoint);
+			std::printf("tecsx double_double_throttle_setpoint:\t %f\n", double_throttle_setpoint);
 
 		} else {
 			// when flying without an airspeed sensor, use the predicted throttle only

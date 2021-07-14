@@ -154,6 +154,43 @@ FixedwingPositionControl::parameters_update()
 	_tecs_X.set_equivalent_airspeed_max(_param_fw_airspd_max.get());
 	_tecs_X.set_throttle_slewrate(_param_fw_thr_slew_max.get());
 	_tecs_X.set_speed_derivative_time_constant(_param_tas_rate_time_const.get());
+
+	// PI X parameters
+
+	_pi_X.set_max_climb_rate(_param_fw_tx_clmb_max.get());
+	_pi_X.set_max_sink_rate(_param_fw_tx_sink_max.get());
+	//_pi_X.set_speed_weight(_param_fw_tx_spdweight.get());
+	_pi_X.set_min_sink_rate(_param_fw_tx_sink_min.get());
+	//_pi_X.set_throttle_damp(_param_fw_tx_thr_damp.get());
+	_pi_X.set_integrator_gain_throttle(_param_fw_tx_I_gain_thr.get());
+	_pi_X.set_integrator_gain_pitch(_param_fw_tx_I_gain_pit.get());
+	_pi_X.set_vertical_accel_limit(_param_fw_tx_vert_acc.get());
+	_pi_X.set_speed_comp_filter_omega(_param_fw_tx_spd_omega.get());
+	_pi_X.set_roll_throttle_compensation(_param_fw_tx_rll2thr.get());
+	//_pi_X.set_pitch_damping(_param_fw_tx_ptch_damp.get());
+	_pi_X.set_height_error_time_constant(_param_fw_tx_h_error_tc.get());
+	//_pi_X.set_heightrate_ff(_param_fw_tx_hrate_ff.get());
+	//_pi_X.set_airspeed_error_time_constant(_param_fw_tx_tas_error_tc.get());
+	//_pi_X.set_ste_rate_time_const(_param_ste_x_rate_time_const.get());
+	//_pi_X.set_seb_rate_ff_gain(_param_seb_x_rate_ff.get());
+	_pi_X.set_error_gain_throttle( _param_fw_pi_x_tas_gain.get());
+	double double_param_fw_pi_x_tas_gain = double(_param_fw_pi_x_tas_gain.get());
+	std::printf("FixedWing: double_param_fw_pi_x_tas_gain:\t %f\n", double_param_fw_pi_x_tas_gain);
+
+	_pi_X.set_integrator_gain_throttle( _param_fw_pi_x_tas_I_gain.get());
+	_pi_X.set_error_gain_pitch( _param_fw_pi_x_h_gain.get());
+	_pi_X.set_integrator_gain_pitch( _param_fw_pi_x_h_I_gain.get());
+
+
+
+
+	// Based on basic TECS
+	_pi_X.set_equivalent_airspeed_cruise(_param_fw_airspd_trim.get());
+	_pi_X.set_equivalent_airspeed_min(_param_fw_airspd_min.get());
+	_pi_X.set_equivalent_airspeed_max(_param_fw_airspd_max.get());
+	_pi_X.set_throttle_slewrate(_param_fw_thr_slew_max.get());
+	//_pi_X.set_speed_derivative_time_constant(_param_tas_rate_time_const.get());
+
 	// Maneuver
 	_maneuver.set_base_spd_sp(_param_fw_x_spd_target.get());
 	_maneuver.set_base_hgt_sp(_param_fw_x_hgt_target.get());
@@ -277,6 +314,7 @@ FixedwingPositionControl::airspeed_poll()
 	if (airspeed_valid != _airspeed_valid) {
 		_tecs.enable_airspeed(airspeed_valid);
 		_tecs_X.enable_airspeed(airspeed_valid);
+		_pi_X.enable_airspeed(airspeed_valid);
 		_airspeed_valid = airspeed_valid;
 	}
 }
@@ -799,6 +837,8 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		_tecs.reset_state();
 		// ADD INTEGRATOR TECS
 		_tecs_X.reset_state();
+
+		_pi_X.reset_state();
 	}
 
 	if ((_control_mode.flag_control_auto_enabled || _control_mode.flag_control_offboard_enabled) && pos_sp_curr.valid) {
@@ -1111,7 +1151,7 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		do_takeoff_help(&_hold_alt, &pitch_limit_min);
 
 		/* throttle limiting */
-		throttle_max = _param_fw_thr_max.get();
+		throttle_max = 1.0f; //_param_fw_thr_max.get();
 
 		if (_landed && (fabsf(_manual_control_setpoint_airspeed) < THROTTLE_THRESH)) {
 			throttle_max = 0.0f;
@@ -1219,7 +1259,7 @@ FixedwingPositionControl::control_position(const hrt_abstime &now, const Vector2
 		do_takeoff_help(&_hold_alt, &pitch_limit_min);
 
 		/* throttle limiting */
-		throttle_max = _param_fw_thr_max.get();
+		throttle_max = 1.0f; //_param_fw_thr_max.get();
 
 		if (_landed && (fabsf(_manual_control_setpoint_airspeed) < THROTTLE_THRESH)) {
 			throttle_max = 0.0f;
@@ -1649,7 +1689,7 @@ FixedwingPositionControl::control_landing(const hrt_abstime &now, const Vector2d
 		// _tecs.set_speed_weight(2.0f);
 
 		/* kill the throttle if param requests it */
-		float throttle_max = _param_fw_thr_max.get();
+		float throttle_max = 1.0f; //_param_fw_thr_max.get();
 
 		/* enable direct yaw control using rudder/wheel */
 		if (_land_noreturn_horizontal) {
@@ -1792,10 +1832,12 @@ FixedwingPositionControl::get_tecs_thrust()
 			}
 			else if(_param_fw_x_ctrl_sel.get() == 2)
 			{
-				return 0.0; // PI OUTPUT HERE
+				return _pi_X.get_throttle_setpoint(); // PI OUTPUT HERE
+
 			}
 		}
 		return _tecs.get_throttle_setpoint();
+
 	}
 
 	// return 0 to prevent stale tecs state when it's not running
@@ -1843,6 +1885,7 @@ FixedwingPositionControl::Run()
 				// make TECS accept step in altitude and demanded altitude
 				_tecs.handle_alt_step(-_local_pos.delta_z, _current_altitude);
 				_tecs_X.handle_alt_step(-_local_pos.delta_z, _current_altitude);
+				_pi_X.handle_alt_step(-_local_pos.delta_z, _current_altitude);
 			}
 
 			// adjust navigation waypoints in position control mode
@@ -2085,6 +2128,9 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 
 	_tecs_X.update_vehicle_state_estimates(_airspeed, _body_acceleration(0), (_local_pos.timestamp > 0), in_air_alt_control,
 					     _current_altitude, _local_pos.vz);
+
+	_pi_X.update_vehicle_state_estimates(_airspeed, _body_acceleration(0), (_local_pos.timestamp > 0), in_air_alt_control,
+					     _current_altitude, _local_pos.vz);
 	/* scale throttle cruise by baro pressure */
 	if (_param_fw_thr_alt_scl.get() > FLT_EPSILON) {
 		vehicle_air_data_s air_data;
@@ -2095,7 +2141,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 				const float eas2tas = sqrtf(CONSTANTS_STD_PRESSURE_PA / air_data.baro_pressure_pa);
 				const float scale = constrain((eas2tas - 1.0f) * _param_fw_thr_alt_scl.get() + 1.f, 1.f, 2.f);
 
-				throttle_max = constrain(throttle_max * scale, throttle_min, 1.0f);
+				throttle_max = 1.0f; //constrain(throttle_max * scale, throttle_min, 1.0f);
 				throttle_cruise = constrain(throttle_cruise * scale, throttle_min + 0.01f, throttle_max - 0.01f);
 			}
 		}
@@ -2112,6 +2158,16 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const hrt_abstime &now, flo
 				    _param_climbrate_target.get(), _param_sinkrate_target.get(), hgt_rate_sp);
 
 	_tecs_X.update_pitch_throttle(_pitch - radians(_param_fw_psp_off.get()),
+				    _current_altitude, alt_sp,
+				    airspeed_sp, _airspeed, _eas2tas,
+				    climbout_mode,
+				    climbout_pitch_min_rad - radians(_param_fw_psp_off.get()),
+				    throttle_min, throttle_max, _tecs.get_throttle_setpoint(),
+				    pitch_min_rad - radians(_param_fw_psp_off.get()),
+				    pitch_max_rad - radians(_param_fw_psp_off.get()),
+				    _param_climbrate_x_target.get(), _param_sinkrate_x_target.get(), hgt_rate_sp);
+
+	_pi_X.update_pitch_throttle(_pitch - radians(_param_fw_psp_off.get()),
 				    _current_altitude, alt_sp,
 				    airspeed_sp, _airspeed, _eas2tas,
 				    climbout_mode,

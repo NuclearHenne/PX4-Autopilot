@@ -470,7 +470,7 @@ PARAM_DEFINE_FLOAT(FW_AIRSPD_MIN, 10.0f);
  * @increment 0.5
  * @group FW TECS
  */
-PARAM_DEFINE_FLOAT(FW_AIRSPD_MAX, 20.0f);
+PARAM_DEFINE_FLOAT(FW_AIRSPD_MAX, 25.0f);
 
 /**
  * Cruise Airspeed (CAS)
@@ -1378,11 +1378,11 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_R_SPX, 2.0f);
  *
  * @min 0.0
  * @max 10
- * @decimal 2
+ * @decimal 5
  * @increment 0.01
  * @group FW PI_X
  */
-PARAM_DEFINE_FLOAT(FW_GAIN_SPD_PI, 1.13f);
+PARAM_DEFINE_FLOAT(FW_GAIN_SPD_PI, 0.0339f);
 
 /**
  * Integral Speed Gain in Experimental PI
@@ -1390,11 +1390,11 @@ PARAM_DEFINE_FLOAT(FW_GAIN_SPD_PI, 1.13f);
  *
  * @min 0.0
  * @max 10
- * @decimal 2
+ * @decimal 5
  * @increment 0.01
  * @group FW PI_X
  */
-PARAM_DEFINE_FLOAT(FW_I_GAIN_SPD_PI, 0.093f);
+PARAM_DEFINE_FLOAT(FW_I_GAIN_SPD_PI, 0.0028f);
 
 /**
  * Proportional Altitude Gain in Experimental PI
@@ -1402,7 +1402,7 @@ PARAM_DEFINE_FLOAT(FW_I_GAIN_SPD_PI, 0.093f);
  *
  * @min 0.0
  * @max 10
- * @decimal 2
+ * @decimal 5
  * @increment 0.01
  * @group FW PI_X
  */
@@ -1414,7 +1414,7 @@ PARAM_DEFINE_FLOAT(FW_GAIN_H_PI, 2.29f);
  *
  * @min 0.0
  * @max 10
- * @decimal 2
+ * @decimal 5
  * @increment 0.01
  * @group FW PI_X
  */

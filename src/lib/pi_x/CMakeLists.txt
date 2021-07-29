@@ -38,5 +38,5 @@ px4_add_library(pi_x
 
 
 # do these have to be changed?
-add_dependencies(pi_x git_ecl)
-target_link_libraries(pi_x PRIVATE ecl_geo)
+# add_dependencies(pi_x git_ecl)
+target_link_libraries(pi_x PRIVATE geo)

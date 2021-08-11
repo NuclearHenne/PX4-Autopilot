@@ -66,3 +66,9 @@
 [submodule "Tools/simulation-ignition"]
 	path = Tools/simulation-ignition
 	url = https://github.com/Auterion/px4-simulation-ignition.git
+[submodule "platforms/qurt/dspal"]
+	path = platforms/qurt/dspal
+	url = https://github.com/ATLFlight/dspal.git
+[submodule "boards/atlflight/cmake_hexagon"]
+	path = boards/atlflight/cmake_hexagon
+	url = https://github.com/PX4/cmake_hexagon.git

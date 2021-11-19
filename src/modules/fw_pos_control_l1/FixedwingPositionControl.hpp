@@ -78,6 +78,8 @@
 #include <uORB/topics/position_controller_status.h>
 #include <uORB/topics/position_setpoint_triplet.h>
 #include <uORB/topics/tecs_status.h>
+
+
 //#include <uORB/topics/tecs_status_x.h>
 #include <uORB/topics/testflight_tecs_status_x.h>
 #include <uORB/topics/testflight_pi_status_x.h>
@@ -359,6 +361,8 @@ private:
 	float 			_dt{0.0f};
 
 
+
+
 	uint8_t _type{0};
 	enum FW_POSCTRL_MODE {
 		FW_POSCTRL_MODE_AUTO,
@@ -528,6 +532,7 @@ private:
 
 		(ParamFloat<px4::params::NAV_LOITER_RAD>) _param_nav_loiter_rad,
 
+
 		(ParamFloat<px4::params::FW_TKO_PITCH_MIN>) _takeoff_pitch_min,
 
 		// test parameters
@@ -535,6 +540,8 @@ private:
 		(ParamFloat<px4::params::FW_X_SPD_SP>) _param_fw_x_spd_target,
 		(ParamFloat<px4::params::FW_X_REL_HGT_SP>) _param_fw_x_rel_hgt_target,
 		(ParamFloat<px4::params::FW_X_REL_SPD_SP>) _param_fw_x_rel_spd_target,
+
+
 		(ParamFloat<px4::params::FW_X_RISE_T_HGT>) _param_fw_x_risetime_hgt,
 		(ParamFloat<px4::params::FW_X_RISE_T_SPD>) _param_fw_x_risetime_spd,
 		(ParamInt<px4::params::FW_X_MODE>) _param_fw_x_mode,

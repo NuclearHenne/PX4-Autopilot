@@ -306,6 +306,13 @@ FixedwingPositionControl::airspeed_poll()
 		_pi_X.enable_airspeed(airspeed_valid);
 		_airspeed_valid = airspeed_valid;
 	}
+	//spark hil tests
+	airspeed_valid = true;
+	_tecs.enable_airspeed(airspeed_valid);
+	_tecs_X.enable_airspeed(airspeed_valid);
+	_pi_X.enable_airspeed(airspeed_valid);
+	_airspeed_valid = airspeed_valid;
+	//_airspeed = hil_state.true_airspeed * 1e-2f;; //_current_groundspeed;
 }
 
 void

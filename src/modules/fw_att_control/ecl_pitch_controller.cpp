@@ -107,6 +107,7 @@ float ECL_PitchController::control_bodyrate(const float dt, const ECL_ControlDat
 	_last_output = _bodyrate_setpoint * _k_ff * ctl_data.scaler +
 		       _rate_error * _k_p * ctl_data.scaler * ctl_data.scaler
 		       + _integrator;
+	/*_last_output = _k_p * 2.8648f;*/
 
 	return math::constrain(_last_output, -1.0f, 1.0f);
 }

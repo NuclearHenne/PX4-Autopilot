@@ -1030,6 +1030,10 @@ MavlinkReceiver::handle_message_set_position_target_global_int(mavlink_message_t
 			} else if (target_global_int.coordinate_frame == MAV_FRAME_GLOBAL_RELATIVE_ALT_INT) {
 				home_position_s home_position{};
 				_home_position_sub.copy(&home_position);
+				//spark
+				home_position.valid_alt = true;
+				home_position.alt = 0.0;
+
 
 				if (home_position.valid_alt) {
 					const float alt = home_position.alt - target_global_int.alt;
@@ -2587,7 +2591,8 @@ MavlinkReceiver::handle_message_hil_state_quaternion(mavlink_message_t *msg)
 		hil_local_pos.v_z_valid = true;
 		hil_local_pos.x = x;
 		hil_local_pos.y = y;
-		hil_local_pos.z = global_local_alt0 - hil_state.alt / 1000.0f;
+		//spark
+		hil_local_pos.z = - hil_state.alt / 1000.0f;//global_local_alt0 - hil_state.alt / 1000.0f;
 		hil_local_pos.vx = hil_state.vx / 100.0f;
 		hil_local_pos.vy = hil_state.vy / 100.0f;
 		hil_local_pos.vz = hil_state.vz / 100.0f;

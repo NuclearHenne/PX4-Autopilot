@@ -1031,8 +1031,8 @@ MavlinkReceiver::handle_message_set_position_target_global_int(mavlink_message_t
 				home_position_s home_position{};
 				_home_position_sub.copy(&home_position);
 				//spark
-				home_position.valid_alt = true;
-				home_position.alt = 0.0;
+				//home_position.valid_alt = true;
+				//home_position.alt = 0.0;
 
 
 				if (home_position.valid_alt) {
@@ -1068,6 +1068,7 @@ MavlinkReceiver::handle_message_set_position_target_global_int(mavlink_message_t
 			setpoint.y = NAN;
 			setpoint.z = NAN;
 		}
+
 
 		// velocity
 		setpoint.vx = (type_mask & POSITION_TARGET_TYPEMASK_VX_IGNORE) ? (float)NAN : target_global_int.vx;
@@ -2572,7 +2573,8 @@ MavlinkReceiver::handle_message_hil_state_quaternion(mavlink_message_t *msg)
 		map_projection_reference_s global_local_proj_ref;
 		map_projection_init(&global_local_proj_ref, lat, lon);
 
-		float global_local_alt0 = hil_state.alt / 1000.f;
+		//spark
+		float global_local_alt0 = 0.0; //hil_state.alt / 1000.f;
 
 		float x = 0.0f;
 		float y = 0.0f;
@@ -2592,7 +2594,7 @@ MavlinkReceiver::handle_message_hil_state_quaternion(mavlink_message_t *msg)
 		hil_local_pos.x = x;
 		hil_local_pos.y = y;
 		//spark
-		hil_local_pos.z = - hil_state.alt / 1000.0f;//global_local_alt0 - hil_state.alt / 1000.0f;
+		hil_local_pos.z = global_local_alt0 - hil_state.alt / 1000.0f;
 		hil_local_pos.vx = hil_state.vx / 100.0f;
 		hil_local_pos.vy = hil_state.vy / 100.0f;
 		hil_local_pos.vz = hil_state.vz / 100.0f;

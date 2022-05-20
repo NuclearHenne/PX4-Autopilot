@@ -302,6 +302,8 @@ private:
 	float _dt{DT_DEFAULT};						///< Time since last update of main TECS loop (sec)
 	static constexpr float DT_DEFAULT = 0.02f;			///< default value for _dt (sec)
 
+	float _max_power{350};
+
 	// controller mode logic
 	bool _underspeed_detected{false};				///< true when an underspeed condition has been detected
 	bool _detect_underspeed_enabled{true};				///< true when underspeed detection is enabled

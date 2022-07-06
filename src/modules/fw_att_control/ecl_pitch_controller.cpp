@@ -60,6 +60,9 @@ float ECL_PitchController::control_attitude(const float dt, const ECL_ControlDat
 	/*  Apply P controller: rate setpoint from current error and time constant */
 	_rate_setpoint =  pitch_error / _tc;
 
+	float integratorPitch = pitch_error * dt * _k_i;
+	_rate_setpoint = _rate_setpoint + integratorPitch;
+
 	return _rate_setpoint;
 }
 
@@ -84,7 +87,7 @@ float ECL_PitchController::control_bodyrate(const float dt, const ECL_ControlDat
 	if (!ctl_data.lock_integrator && _k_i > 0.0f) {
 
 		/* Integral term scales with 1/IAS^2 */
-		 float id = ctl_data.pitch_setpoint - ctl_data.pitch; //_rate_error * dt * 1 * 1;
+		 float id = _rate_error * dt * 1 * 1;
 		//float id = _rate_error * dt * ctl_data.scaler * ctl_data.scaler;
 
 
@@ -107,8 +110,8 @@ float ECL_PitchController::control_bodyrate(const float dt, const ECL_ControlDat
 	/* Apply PI rate controller and store non-limited output */
 	/* FF terms scales with 1/TAS and P,I with 1/IAS^2 */
 	_last_output = _bodyrate_setpoint * _k_ff * 1 + //ctl_data.scaler +
-                      _rate_error * _k_p * 1 * 1//ctl_data.scaler * ctl_data.scaler;
-		       + _integrator;
+                      _rate_error * _k_p * 1 * 1;//ctl_data.scaler * ctl_data.scaler;
+		       //+ _integrator;
 	/*_last_output = _k_p * 2.8648f;*/
 
 	return math::constrain(_last_output, -1.0f, 1.0f);

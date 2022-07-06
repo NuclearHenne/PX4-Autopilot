@@ -79,7 +79,7 @@ float ECL_PitchController::control_bodyrate(const float dt, const ECL_ControlDat
 	}
 
 	/* Calculate body angular rate error */
-	_rate_error = _bodyrate_setpoint - ctl_data.body_y_rate;
+	_rate_error = - ctl_data.body_y_rate; //_bodyrate_setpoint - ctl_data.body_y_rate;
 
 	if (!ctl_data.lock_integrator && _k_i > 0.0f) {
 

@@ -84,7 +84,7 @@ float ECL_PitchController::control_bodyrate(const float dt, const ECL_ControlDat
 	if (!ctl_data.lock_integrator && _k_i > 0.0f) {
 
 		/* Integral term scales with 1/IAS^2 */
-		 float id = _rate_error * dt * 1 * 1;
+		 float id = ctl_data.pitch_setpoint - ctl_data.pitch; //_rate_error * dt * 1 * 1;
 		//float id = _rate_error * dt * ctl_data.scaler * ctl_data.scaler;
 
 
